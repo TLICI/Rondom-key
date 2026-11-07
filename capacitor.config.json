@@ -1,0 +1,12 @@
+{
+  "appId": "com.randomkey.manager",
+  "appName": "random密钥",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#0f1117"
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

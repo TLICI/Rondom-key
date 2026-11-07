@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0f1117" />
+<title>random密码生成器 · 密钥管理</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="wrap">
+  <section class="card">
+    <h1>random密码生成器</h1>
+    <p class="sub">使用加密安全random数生成；填写名称后生成会自动存入右侧密钥列表。</p>
+
+    <div class="output">
+      <div id="password" class="placeholder">点击「生成密码」…</div>
+      <button class="icon-btn" id="copyBtn" title="复制">复制</button>
+      <button class="icon-btn" id="refreshBtn" title="重新生成">↻</button>
+    </div>
+
+    <div class="row">
+      <div class="row-head">
+        <span class="label">密码长度</span>
+        <span class="len-value"><span id="lenText">16</span> 位</span>
+      </div>
+      <input type="range" id="length" min="15" max="20" value="16" />
+    </div>
+
+    <div class="row">
+      <div class="label" style="margin-bottom:9px">字符集</div>
+      <div class="opts">
+        <label class="opt">
+          <input type="checkbox" id="optLower" checked />
+          <span class="box"></span>
+          <span class="opt-text">
+            <span class="opt-title">小写字母 a-z</span>
+            <span class="opt-desc">abcdefghijklmnopqrstuvwxyz</span>
+          </span>
+        </label>
+        <label class="opt">
+          <input type="checkbox" id="optUpper" checked />
+          <span class="box"></span>
+          <span class="opt-text">
+            <span class="opt-title">大写字母 A-Z</span>
+            <span class="opt-desc">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span>
+          </span>
+        </label>
+        <label class="opt">
+          <input type="checkbox" id="optDigit" checked />
+          <span class="box"></span>
+          <span class="opt-text">
+            <span class="opt-title">数字 0-9</span>
+            <span class="opt-desc">0123456789</span>
+          </span>
+        </label>
+        <label class="opt">
+          <input type="checkbox" id="optSymbol" checked />
+          <span class="box"></span>
+          <span class="opt-text">
+            <span class="opt-title">符号</span>
+            <span class="opt-desc">!@#$=+-_</span>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <label class="opt" style="margin-bottom:14px">
+      <input type="checkbox" id="optExclusive" />
+      <span class="box"></span>
+      <span class="opt-text">
+        <span class="opt-title">排除易混淆字符</span>
+        <span class="opt-desc">0 O o 1 l I i | ` ' " \ </span>
+      </span>
+    </label>
+
+    <div class="strength">
+      <div class="bars"><i></i><i></i><i></i><i></i></div>
+      <span class="strength-text" id="strengthText">—</span>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div class="name-row">
+      <input type="text" id="keyName" maxlength="40" placeholder="为这条密钥命名，如：邮箱主账号" />
+      <span class="hint">回车生成</span>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="genBtn">生成密码</button>
+      <button class="ghost save" id="saveBtn" title="保存当前密码到列表">保存</button>
+    </div>
+
+    <div class="divider"><span>手动记录已有密钥</span></div>
+
+    <div class="manual">
+      <div class="name-row">
+        <input type="text" id="manualName" maxlength="40" placeholder="名称，如：公司 VPN" />
+      </div>
+      <div class="name-row">
+        <input type="text" id="manualPwd" maxlength="128" autocomplete="off" spellcheck="false" placeholder="要记录的密码" />
+      </div>
+      <div class="actions">
+        <button class="ghost wide" id="manualAdd">添加到列表</button>
+      </div>
+    </div>
+
+    <div class="divider"><span>加密说明</span></div>
+
+    <p class="lock-tip">
+      加密使用 AES-256-GCM（SHA-256 派生 256 位密钥，随机 IV）。加密密钥由你自己输入（最多 20 字符），
+      程序不会保存任何密钥：每次查看、复制、解密都要重新输入。忘记密钥则无法恢复，请务必自行保管。
+    </p>
+  </section>
+
+  <section class="card">
+    <div class="vault-head">
+      <h2>密钥列表<span class="count" id="count">0</span><span class="enc-stat" id="encStat"></span></h2>
+      <div class="vault-actions">
+        <button class="ghost" id="importBtn">批量导入</button>
+        <button class="ghost" id="exportBtn">导出</button>
+        <button class="ghost danger" id="clearAll">清空</button>
+      </div>
+    </div>
+
+    <div class="search-row">
+      <input type="text" id="search" placeholder="搜索名称…" />
+    </div>
+
+    <div class="sel-bar">
+      <label class="sel-all">
+        <input type="checkbox" id="selAll" />
+        <span class="box"></span>
+        <span>全选</span>
+      </label>
+      <span class="sel-count" id="selCount">未选择</span>
+      <div class="sel-actions">
+        <button class="ghost" id="btnEncryptSel" disabled>批量加密</button>
+        <button class="ghost" id="btnDecryptSel" disabled>批量解密</button>
+        <button class="ghost" id="btnExportSel" disabled>导出所选</button>
+        <button class="ghost" id="btnClearSel">取消选择</button>
+      </div>
+    </div>
+
+    <div class="modal" id="exportModal" hidden>
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="exportTitle">导出密钥</h3>
+          <button class="mini" id="exportClose">关闭</button>
+        </div>
+        <p class="modal-tip">
+          选择导出格式和密码形态。<b>保持加密</b>导出的内容仍是 AES 密文，别人拿到文件也看不到密码；
+          <b>解密后导出</b>会先验证密钥，导出的是明文，请注意文件安全。
+        </p>
+        <div class="label" style="margin-bottom:9px">导出格式</div>
+        <div class="fmt-row" id="exportFmtRow">
+          <label class="fmt"><input type="radio" name="exportFmt" value="json" checked /><span>JSON</span></label>
+          <label class="fmt"><input type="radio" name="exportFmt" value="csv" /><span>CSV</span></label>
+        </div>
+        <div class="label" style="margin:16px 0 9px">密码形态</div>
+        <div class="opts">
+          <label class="opt">
+            <input type="radio" name="exportMode" value="enc" checked />
+            <span class="box"></span>
+            <span class="opt-text">
+              <span class="opt-title">保持加密</span>
+              <span class="opt-desc">导出的仍是密文，无需输入密钥</span>
+            </span>
+          </label>
+          <label class="opt">
+            <input type="radio" name="exportMode" value="plain" />
+            <span class="box"></span>
+            <span class="opt-text">
+              <span class="opt-title">解密后导出</span>
+              <span class="opt-desc">导出明文，需输入密钥验证</span>
+            </span>
+          </label>
+        </div>
+        <div class="error" id="exportError" style="min-height:17px"></div>
+        <div class="actions">
+          <button class="primary" id="exportRun">导出</button>
+          <button class="ghost" id="exportCancel">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="unlockModal" hidden>
+      <div class="modal-card" style="max-width:420px">
+        <div class="modal-head">
+          <h3 id="unlockTitle">输入加密密钥</h3>
+          <button class="mini" id="unlockClose">关闭</button>
+        </div>
+        <p class="modal-tip" id="unlockTip">用于 AES 加密 / 解密，密钥不会被保存。</p>
+        <div class="name-row">
+          <input type="password" id="unlockInput" maxlength="20" autocomplete="off" spellcheck="false"
+                 placeholder="加密密钥（最多 20 字符）" />
+        </div>
+        <div class="name-row" id="unlockConfirmRow" hidden style="margin-top:8px">
+          <input type="password" id="unlockInput2" maxlength="20" autocomplete="off" spellcheck="false"
+                 placeholder="再次输入加密密钥" />
+        </div>
+        <div class="error" id="unlockError" style="min-height:17px"></div>
+        <div class="actions">
+          <button class="primary" id="unlockOk">确定</button>
+          <button class="ghost" id="unlockCancel">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="list" id="list"></div>
+    <div class="empty" id="empty">
+      还没有保存的密钥。<br />生成时填写名称、手动记录或批量导入，都会出现在这里。
+    </div>
+
+    <input type="file" id="fileInput" accept=".json,.csv,.txt,text/csv,application/json" hidden />
+
+    <div class="modal" id="importModal" hidden>
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3>批量导入</h3>
+          <button class="mini" id="modalClose">关闭</button>
+        </div>
+        <p class="modal-tip">
+          每行一条记录，格式：<code>名称,密码</code>（也支持 Tab、空格或 <code>名称 = 密码</code>）。<br />
+          可直接粘贴，也可以选择本程序导出的 JSON / CSV 文件，同名记录将按「保留/覆盖」规则处理。
+        </p>
+        <textarea id="importText" spellcheck="false" placeholder="邮箱主账号,kR7#vd2=Qm!4sT&#10;公司 VPN，Xy9+_ab3Lp#Wz1&#10;示例：GitHub = gh_9!Kd2#mQp"></textarea>
+        <div class="import-tip" id="importTip" hidden></div>
+        <label class="opt compact">
+          <input type="checkbox" id="importKeepEnc" checked />
+          <span class="box"></span>
+          <span class="opt-text">
+            <span class="opt-title">加密记录保持加密导入</span>
+            <span class="opt-desc">取消勾选则解密成明文保存（需输入密钥）</span>
+          </span>
+        </label>
+        <label class="opt compact">
+          <input type="checkbox" id="overwrite" />
+          <span class="box"></span>
+          <span class="opt-text">
+            <span class="opt-title">同名记录覆盖</span>
+            <span class="opt-desc">不勾选则跳过重名项</span>
+          </span>
+        </label>
+        <div class="error" id="importError" style="min-height:17px"></div>
+        <div class="actions">
+          <button class="primary" id="importFileBtn">选择文件</button>
+          <button class="primary" id="importRun">导入 <span id="importCount"></span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>

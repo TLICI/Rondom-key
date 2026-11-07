@@ -1,0 +1,72 @@
+{
+  "name": "random-key-manager",
+  "version": "1.0.0",
+  "description": "random 密码生成器与密钥管理（桌面客户端 + 安卓 App）",
+  "private": true,
+  "main": "electron/main.js",
+  "author": "random key",
+  "license": "MIT",
+  "scripts": {
+    "icon": "node scripts/make-icon.js",
+    "start": "electron .",
+    "desktop:pack": "npm run icon && electron-builder --dir",
+    "desktop:build": "npm run icon && electron-builder",
+    "desktop:build:win": "npm run icon && electron-builder --win",
+    "cap:sync": "cap sync android",
+    "android:build": "cap sync android && cd android && gradlew.bat assembleDebug",
+    "android:open": "cap open android"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "png-to-ico": "^2.1.8",
+    "sharp": "^0.33.5"
+  },
+  "build": {
+    "appId": "com.randomkey.manager",
+    "productName": "random-key-manager",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "www/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "random-key-manager-${version}-setup.${ext}",
+      "shortcutName": "random 密码生成器"
+    },
+    "portable": {
+      "artifactName": "random-key-manager-${version}-portable.${ext}"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Utility"
+    }
+  }
+}

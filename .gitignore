@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/icon.ico
+build/icon@2x.png
+
+# Capacitor / Android build artifacts
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/.idea/
+*.apk
+*.aab
+*.exe
+
+# Logs & temp
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Env & secrets
+.env
+.env.*
+*.keystore
+*.jks
